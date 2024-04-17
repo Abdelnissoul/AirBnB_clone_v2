@@ -21,37 +21,27 @@ class FileStorage:
     __file_path = "file.json"
     __objects = {}
 
-    def all(self, cls=None):
-        """Retrieve the dictionary of serialized objects.
-
-        Args:
-            cls (class, optional): If specified, filters the result to include
-                only objects of the specified class.
-
-        Returns:
-            dict: A dictionary containing objects in storage.
-        """
-        if cls:
-            return {k: v for k, v in self.__objects.items() if isinstance(v, cls)}
-        return self.__objects
+    def all(self):
+        """Retrieve the dictionary of serialized objects."""
+        return FileStorage.__objects
 
     def new(self, obj):
         """Add a new object to the storage dictionary."""
         key = "{}.{}".format(obj.__class__.__name__, obj.id)
-        self.__objects[key] = obj
+        FileStorage.__objects[key] = obj
 
     def save(self):
         """Serialize objects to JSON and save to file."""
         serialized_objs = {}
-        for key, obj in self.__objects.items():
+        for key, obj in FileStorage.__objects.items():
             serialized_objs[key] = obj.to_dict()
-        with open(self.__file_path, "w") as file:
+        with open(FileStorage.__file_path, "w") as file:
             json.dump(serialized_objs, file)
 
     def reload(self):
         """Deserialize JSON file and reload objects into storage."""
         try:
-            with open(self.__file_path, "r") as file:
+            with open(FileStorage.__file_path, "r") as file:
                 data = json.load(file)
                 for key, val in data.items():
                     cls_name = val['__class__']
@@ -59,10 +49,15 @@ class FileStorage:
                     self.__objects[key] = eval(cls_name)(**val)
         except FileNotFoundError:
             pass
-
     def delete(self, obj=None):
         """Delete obj from __objects if it's inside."""
         if obj is None:
             return
         key = "{}.{}".format(obj.__class__.__name__, obj.id)
         self.__objects.pop(key, None)
+
+    def all(self, cls=None):
+        """Retrieve a list of objects of one type of class."""
+        if cls is None:
+            return self.__objects.values()
+        return [obj for obj in self.__objects.values() if isinstance(obj, cls)]
