@@ -1,88 +1,57 @@
-# Configures a web server for deployment of web_static.
-
-# Nginx configuration file
-$nginx_conf = "server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
-    add_header X-Served-By ${hostname};
-    root   /var/www/html;
-    index  index.html index.htm;
-    location /hbnb_static {
-        alias /data/web_static/current;
-        index index.html index.htm;
-    }
-    location /redirect_me {
-        return 301 https://th3-gr00t.tk;
-    }
-    error_page 404 /404.html;
-    location /404 {
-      root /var/www/html;
-      internal;
-    }
-}"
-
-package { 'nginx':
-  ensure   => 'present',
-  provider => 'apt'
-} ->
-
+# Define the file structure and symbolic links for web_static
 file { '/data':
-  ensure  => 'directory'
-} ->
+  ensure => 'directory',
+}
 
 file { '/data/web_static':
-  ensure => 'directory'
-} ->
+  ensure => 'directory',
+}
 
 file { '/data/web_static/releases':
-  ensure => 'directory'
-} ->
-
-file { '/data/web_static/releases/test':
-  ensure => 'directory'
-} ->
+  ensure => 'directory',
+}
 
 file { '/data/web_static/shared':
-  ensure => 'directory'
-} ->
+  ensure => 'directory',
+}
 
-file { '/data/web_static/releases/test/index.html':
-  ensure  => 'present',
-  content => "Holberton School Puppet\n"
-} ->
+file { '/data/web_static/releases/test':
+  ensure => 'directory',
+}
+
+file { '/data/web_static/shared/test':
+  ensure => 'directory',
+}
 
 file { '/data/web_static/current':
   ensure => 'link',
-  target => '/data/web_static/releases/test'
-} ->
-
-exec { 'chown -R ubuntu:ubuntu /data/':
-  path => '/usr/bin/:/usr/local/bin/:/bin/'
+  target => '/data/web_static/releases/test',
+  force  => true,
 }
 
-file { '/var/www':
-  ensure => 'directory'
-} ->
+# Create index.html in the test directory
+file { '/data/web_static/releases/test/index.html':
+  ensure  => 'file',
+  content => '<html>
+                <head>
+                </head>
+                <body>
+                  Holberton School
+                </body>
+              </html>',
+}
 
-file { '/var/www/html':
-  ensure => 'directory'
-} ->
+# Set permissions for the web_static directory
+file { '/data/web_static':
+  ensure  => 'directory',
+  recurse => true,
+  owner   => 'ubuntu',
+  group   => 'ubuntu',
+}
 
-file { '/var/www/html/index.html':
-  ensure  => 'present',
-  content => "Holberton School Nginx\n"
-} ->
-
-file { '/var/www/html/404.html':
-  ensure  => 'present',
-  content => "Ceci n'est pas une page\n"
-} ->
-
+# Configure Apache to serve the static content
 file { '/etc/nginx/sites-available/default':
-  ensure  => 'present',
-  content => $nginx_conf
-} ->
-
-exec { 'nginx restart':
-  path => '/etc/init.d/'
+  ensure  => 'file',
+  content => file('path/to/your/default_configuration_file'),
+  notify  => Service['nginx'],
 }
