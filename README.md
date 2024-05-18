@@ -11,3 +11,5 @@ so by doing this project we will be able to understand the following :
 - How to map a Python Class to a MySQL table
 - How to handle 2 different storage engines with the same codebase
 - How to use environment variables
+
+- web flask
