@@ -1,0 +1,1 @@
+Templates is for HTML files
